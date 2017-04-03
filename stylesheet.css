@@ -1,0 +1,191 @@
+body {
+    text-align: center;
+    font-family: tahoma;
+}
+#calendar #month_changer {
+    font-size: large;
+}
+#calendar #month_changer #current_month {
+    color: #000080;
+}
+#calendar #month_changer #next {
+}
+#calendar #month_changer #prev {
+}
+#calendar #month_changer .arrows {
+    color: #808080;
+    cursor: pointer;
+}
+
+#calendar #month_changer #current_year {
+    color: #000080;
+}
+
+#calendar #cal {
+    width: 70%;
+    height: 70%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom:  auto;
+    margin-top: auto;
+ 
+}
+
+#calendar #cal #weekdays{
+    outline: thin solid;
+    color: #808080;
+    font-size:  xx-small;
+    
+}
+#calendar #cal .days{
+    color: #808080;
+    font-size:  small;
+    outline: none;
+}
+
+.stars{
+    color: #800000;
+    font-size:  xx-small;
+}
+.loginSection {
+    font-size: xx-small;
+    color: #000080;
+}
+.loginSection #login {
+    cursor: pointer;
+}
+.logout {
+    cursor:pointer;
+    color: #008080;
+    font-size: xx-small;
+}
+.registerSection #register{
+    cursor: pointer;
+}
+.registerSection {
+    font-size: xx-small;
+    color: #808080;
+}
+
+.registerSection #error{
+    font-size: xx-small;
+    color: #800000;
+}
+
+.star {
+    font-size: xx-small;
+    color: #00aa00;
+}
+#mist{
+    position: fixed;
+    z-index: 50;
+    top: 0px;
+    left: 0px;
+    height : 100%;
+    width : 100%;
+    background-color: rgba(230,230,255,0.5);
+    display: none;
+}
+#eventDialog {
+    position: absolute;
+    z-index: 100;
+    top: 0px;
+    left: 0px;
+    width: 50%;
+    height: 50%;
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-bottom:  25%;
+    margin-top: 25%;
+    background-color: #ffffff;
+}
+#x {
+    position:absolute;
+    z-index: 101;
+    color: #ff0000;
+    top: 0px;
+    right: 3px;
+    text-align: right;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+}
+#events {
+    text-align: left;
+    font-size: small;
+}
+
+#add {
+    font-size: small;
+}
+.time {
+    position:absolute;
+    text-align: right;
+    font-size:  xx-small;
+    right: 2em;
+    
+}
+.title {
+   
+}
+
+
+.delete{
+    position:absolute;
+    right: 10em;
+    cursor: pointer;
+    text-align: right;
+    font-size:  xx-small;
+    color : #ff0000;
+}
+.mod{
+    position:absolute;
+    right: 14em;
+    cursor: pointer;
+    text-align: right;
+    font-size:  xx-small;
+    color : #ff0000;
+}
+.addbut {
+    padding: 2em;
+       font-size:  xx-small;
+        color : #000080;
+        cursor: pointer;
+}
+
+.flagged {
+    font-size: xx-small;
+    color : #008800;
+}
+#fixedheight {
+    table-layout: fixed;
+}
+
+#fixedheight td {
+    height: 20px;
+    overflow: hidden;
+    width: 25%;
+}
+
+#cal {
+    table-layout: fixed;
+}
+
+#cal td {
+}
+
+#cal td div {
+    height: 1px;
+    overflow: hidden;
+}
+
+#weather {
+    font-size: xx-small;
+    color : #000080;
+    
+}
+#newWeather {
+    font-size: xx-small;
+    color : #000080;
+    cursor: pointer;
+}

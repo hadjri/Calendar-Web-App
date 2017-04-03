@@ -1,0 +1,44 @@
+<?php
+require 'database.php';
+
+
+session_start();
+
+function validCSRF(){
+    if (isset($_POST["CSRF_TOKEN"]) && isset($_SESSION["CSRF_TOKEN"]))
+        if ($_POST["CSRF_TOKEN"] != null && strcmp($_POST["CSRF_TOKEN"], $_SESSION['CSRF_TOKEN'])==0){
+          return true;
+        }
+    else {
+        session_destroy();
+        return false;
+    }
+}
+
+
+
+if (validCSRF()){
+    $stmt = $mysqli->prepare("select event_id, title, flag, TIME(datetime) as TIME, DAY(datetime) as DAY, MONTH(datetime) as MONTH, YEAR(datetime) as YEAR from events where username = ? order by datetime");
+    $stmt->bind_param("s", $_SESSION["username"]);
+   if(!$stmt){
+       printf("Query Prep Failed: %s\n", $mysqli->error);
+       exit;
+   }
+   $stmt->execute();
+    
+   $result = $stmt->get_result();
+    $jsonArray = array();
+    $_SESSION['CSRF_TOKEN'] = bin2hex(openssl_random_pseudo_bytes(32));
+    $jsonArray[] = array("status" => "sucess","CSRF_TOKEN" => $_SESSION['CSRF_TOKEN']);
+   while($row = $result->fetch_assoc()){
+      $jsonArray[] = $row;
+   }
+   $stmt->close();
+    echo (json_encode($jsonArray));
+}
+else{
+    echo json_encode(array("status" => "failure", "CSRF_TOKEN" =>null));
+}
+
+
+?>

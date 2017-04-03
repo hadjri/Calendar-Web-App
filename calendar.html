@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Calendar </title>
+        <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+        <link rel="stylesheet" type="text/css" href ="http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.css"/>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script type="text/javascript" src="http://classes.engineering.wustl.edu/cse330/content/calendar.min.js"></script>
+        <script type ="text/javascript" src = "http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.js"></script>
+        <script type ="text/javascript" src = "timepicker.min.js"></script>
+        <!--<script type ="text/javascript" src = "startSession.js"</script> -->
+    </head>
+    <body>
+
+  
+    <div id = "calendar">
+        <div id = "month_changer">
+            <span id = "prev" class = "arrows"> prv </span>
+            <span id = "current_month">JAN</span> 
+            <span id = "current_year">2017</span>
+            <span id = "next" class = "arrows"> nxt </span>
+        </div>
+        <br>
+        <table id = "cal">
+            <tr id = "weekdays">
+                <th>Su</th>
+                <th>Mn</th>
+                <th>Tu</th>
+                <th>Wd</th>
+                <th>Th</th>
+                <th>Fr</th>
+                <th>Sa</th>
+            </tr>
+        <!-- The idea is to list out all possible days
+        for the largest possible 6-week span, setting days to be some form of null when those days don't exist for a particular month -->
+            <tr>
+                <th id = "0" class= "days"></th>  
+                <th id = "1" class= "days"></th>
+                <th id = "2" class= "days"></th>
+                <th id = "3" class= "days"></th>
+                <th id = "4" class= "days"></th>
+                <th id = "5" class= "days"></th>
+                <th id = "6" class= "days"></th>
+            </tr>
+            <tr>
+                <th id = "7" class= "days"></th>  
+                <th id = "8" class= "days"></th>
+                <th id = "9" class= "days"></th>
+                <th id = "10" class= "days"></th>
+                <th id = "11" class= "days"></th>
+                <th id = "12" class= "days"></th>
+                <th id = "13" class= "days"></th>
+            </tr>
+            <tr>
+                <th id = "14" class= "days"></th>  
+                <th id = "15" class= "days"></th>
+                <th id = "16" class= "days"></th>
+                <th id = "17" class= "days"></th>
+                <th id = "18" class= "days"></th>
+                <th id = "19" class= "days"></th>
+                <th id = "20" class= "days"></th>
+            </tr>
+            <tr>
+                <th id = "21" class= "days"></th>  
+                <th id = "22" class= "days"></th>
+                <th id = "23" class= "days"></th>
+                <th id = "24" class= "days"></th>
+                <th id = "25" class= "days"></th>
+                <th id = "26" class= "days"></th>
+                <th id = "27" class= "days"></th>
+            </tr>
+            <tr>
+                <th id = "28" class= "days"></th>  
+                <th id = "29" class= "days"></th>
+                <th id = "30" class= "days"></th>
+                <th id = "31" class= "days"></th>
+                <th id = "32" class= "days"></th>
+                <th id = "33" class= "days"></th>
+                <th id = "34" class= "days"></th>
+            </tr>
+            <tr>
+                <th id = "35" class= "days"></th>  
+                <th id = "36" class= "days"></th>
+                <th id = "37" class= "days"></th>
+                <th id = "38" class= "days"></th>
+                <th id = "39" class= "days"></th>
+                <th id = "40" class= "days"></th>
+                <th id = "41" class= "days"></th>
+            </tr>
+        </table>
+    </div>
+    <br>
+   <div> 
+        <input id = "weather" type = "text" value = "Saint Louis"> 
+        <span id = "newWeather"> weather </span>
+   </div>
+    
+    <br>
+    <div class = "loginSection">
+        <span>
+            username:
+            <input type="text" id = "username" name="username" value="">
+        </span>
+        <span>
+            password:
+            <input id = "pw" type="password" name="password" value="">
+        </span>
+        <span id = "login">login</span>
+    </div>
+    <br>
+    <div class = "registerSection" >
+         new user?
+        <form>
+            <span>
+                username:
+                <input type="text" id = "reg_username" name="username" value="">
+            </span>
+            <span>
+                email:
+                <input type="text" id = "email" name="email" value="">
+            </span>
+            <span>
+                password:
+                <input id = "reg_pw" type="password" name="password" value="">
+            </span>   
+        <span id = "register">register</span>
+        </form> 
+    </div>
+       <div class = "logout">log out</div>
+       
+    <div id = "mist"> 
+       <div id = "eventDialog">
+           <div id = "x">x</div>
+           <table id = "events"></table>
+           <div id = "add">
+                <span id = "addmod"> add event <br></span>
+            </div>
+        </div>
+    </div>
+    <script>
+  
+        var loggedIn = false; // a helper variable purely for displaying logic. there is proper validation on the server.
+         var CSRF_TOKEN = null;
+         var today = null;
+        var weatherData = [];
+       var add = function(){
+             var statusxmlHttp = new XMLHttpRequest();
+            statusxmlHttp.open("POST", "add.php", true);
+            statusxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            statusxmlHttp.addEventListener("load", addmoddelCallBack, false);
+            statusxmlHttp.send(("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN)) + "&title="+ encodeURIComponent($(".newtitle").val()) + "&flag=" + encodeURIComponent(document.getElementById("flag").checked)
+                               +"&datetime=" + encodeURIComponent(currentMonth.year) +"-"+ encodeURIComponent(addLeadingZero(parseInt(currentMonth.month+1)))
+                               + "-"+ encodeURIComponent(addLeadingZero(today) + " ") + encodeURIComponent($('#addtime :selected').text()));
+        };
+       
+       $('#newWeather').click(function(){
+            getForecast($('#weather').val());
+       });
+       function addmoddelCallBack(event){
+            var eventsJson =  JSON.parse(event.target.responseText);
+            console.log(eventsJson);
+            events.length = 0;
+            if (Array.isArray(eventsJson)){
+                if (eventsJson[0].status == "sucess"){
+                    
+                    for (i = 1; i <eventsJson.length; i++){
+                        events.push(eventsJson[i]);
+                        console.log(eventsJson[i]);
+                    }           
+                }
+                quitView();
+                updateCalendar();
+                
+            }
+            else {events.length = 0;}
+            if (eventsJson[0].message !== null){
+               alert(eventsJson[0].message);
+            }
+            CSRF_TOKEN = eventsJson[0].CSRF_TOKEN;
+        }
+      
+        var addtimenode = makeTimePickerNode("addtime");
+            addtimenode.appendTo($("#add"));
+        var textfieldnode = jQuery('<input/>', {
+                    type: 'text',
+                    class: 'newtitle'          
+                    });
+        
+        textfieldnode.appendTo($("#add"));
+        
+         var flagnode = jQuery('<input/>', {
+                    type: 'checkbox',
+                    class: 'flag',
+                    text: 'flag?',
+                    id: 'flag'
+                    });
+       var fornode = jQuery('<label/>', {
+                    for: 'flag',
+                    text: 'flag?'
+                    });
+        var addnode = jQuery('<span/>', {
+                    class: 'addbut',
+                    text: 'add'
+                    });
+        flagnode.appendTo($("#add"));
+        fornode.appendTo($("#add"));
+        addnode.appendTo($("#add"));
+        addnode.click(add);
+        
+        
+            
+            
+        //First Check if the user is logged in to determine whether to show login/register fields
+        
+        //var statusxmlHttp = new XMLHttpRequest();
+        //    statusxmlHttp.open("POST", "statusChecker.php", true);
+        //    statusxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        //    statusxmlHttp.addEventListener("load", statusCallBack, false);
+        //    statusxmlHttp.send(encodeURI("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN)));
+        //
+        
+        //function statusCallBack(event){
+        //    alert(event.target.responseText);
+        //     var status_msg = JSON.parse(event.target.responseText);
+        //    if (status_msg.status == "loggedin"){
+        //        loggedInDisplay();
+        //    }
+        //    else {
+        //        loggedOutDisplay();
+        //    }
+        //}
+        var events = [];
+        
+        
+        document.getElementById("x").addEventListener("click", function(){
+            updateCalendar();
+            quitView();
+        }, false);
+        function quitView(){
+            $("#mist").hide();
+            $('#events').html(""); //remove all  children
+            endMod();
+        }
+        function startView(events){
+            $("#mist").show();
+            populateDbox(events);
+        }
+        
+        function populateDbox(events){
+            for (var i = 0; i < events.length; i++){
+                //var enode = "<div><span class = \"title\"" + events[i].title + "</span><span class = \"time\">"+ events[i].TIME+"</span></div>";
+                var enode = jQuery('<tr/>', {
+                    class: 'e',
+                    id: "e"+events[i].event_id
+                    });
+                var deletenode = jQuery('<td/>', {
+                    class: 'delete',
+                    text: "del"
+                    });
+                 var modnode = jQuery('<td/>', {
+                    class: 'mod',
+                    text: "mod"
+                    });
+                
+                var titlenode = jQuery('<td/>', {
+                    class: 'title',
+                    text: events[i].title //by the virtue of using text field of jQuerry constructor, we sanitize to avoid XSS attack
+                    });
+                  var timenode = jQuery('<td/>', {
+                    class: 'time',
+                    text: events[i].TIME
+                    });
+                    var flaggednode = jQuery('<label/>', {
+                    for: "e"+events[i].event_id,
+                    text: "(flagged)",
+                    class: "flagged"
+                    });
+                    
+                
+                titlenode.appendTo(enode);
+                timenode.appendTo(enode);
+                modnode.appendTo(enode);
+                deletenode.appendTo(enode);
+                if (events[i].flag == 1){
+                    flaggednode.appendTo(enode);
+                }
+                enode.appendTo($("#events"));
+                modnode.click(function(){
+                    startMod($(this).parent().attr('id'));
+                });
+               deletenode.click(function(){
+                         var statusxmlHttp = new XMLHttpRequest();
+                        statusxmlHttp.open("POST", "delete.php", true);
+                        statusxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                        statusxmlHttp.addEventListener("load", addmoddelCallBack, false);
+                        statusxmlHttp.send(("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN)) + "&event_id=" + encodeURIComponent($(this).parent().attr('id').substr(1)));        
+             }); 
+                }
+
+            }
+           
+      
+        function startMod(e_id){
+            
+            $("#addmod").text("modify event");
+            $(".addbut").text("mod");
+            $(".timer").val( $("#"+e_id).find(".time").text());
+            $(".newtitle").val($("#"+e_id).find(".title").text());
+            $(".addbut").off(); 
+             $(".addbut").click(function(){
+                
+            var statusxmlHttp = new XMLHttpRequest();
+            statusxmlHttp.open("POST", "mod.php", true);
+            statusxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            statusxmlHttp.addEventListener("load", addmoddelCallBack, false);
+            statusxmlHttp.send(("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN)) + "&event_id=" + encodeURIComponent(e_id.substr(1)) +"&title="+ encodeURIComponent($(".newtitle").val())
+                               +"&datetime=" + encodeURIComponent(currentMonth.year) +"-"+ encodeURIComponent(addLeadingZero(parseInt(currentMonth.month+1)))
+                               + "-"+ encodeURIComponent(addLeadingZero(today) + " ") + encodeURIComponent($('#addtime :selected').text()) + "&flag=" + encodeURIComponent(document.getElementById("flag").checked));
+                
+             }); 
+        }
+        
+        
+        function endMod(){
+            $("#addmod").text("create event");
+            $(".addbut").text("add");
+            $(".newtitle").val("");
+            $(".addbut").off(); //remove event listener
+             $(".addbut").click(add); //addback the add event listener
+        }
+        function addLeadingZero(input){
+            if (input <10){
+                return "0" + input;
+            }
+            else {
+                return input;
+            }
+        }
+        
+        function makeTimePickerNode(custId){
+             var addtimenode = jQuery('<select/>', {
+                    class: 'timer',
+                    id: custId
+            });
+            for (var j = 0; j < 48; j++){
+                var str = "00";
+                if (j % 2 == 1){
+                    str = "30";
+                }
+                var str2 = Math.floor(j/2);
+                if (j/2 < 10){
+                    str2 = "0"+ str2;
+                }
+                var op = jQuery('<option/>', {
+                    value: j,
+                    text: str2 + ":" + str
+                 });
+                op.appendTo(addtimenode);
+            }
+            return addtimenode;
+        }
+        //this function sends our CSRF to some target function and updates it if the PHP handshake is successful and a new one is given.
+        function sendCSRF(targetPHP, callBack){
+            var statusxmlHttp = new XMLHttpRequest();
+            statusxmlHttp.open("POST", targetPHP, true);
+            statusxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            statusxmlHttp.addEventListener("load", callBack, false);
+            statusxmlHttp.send("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN));
+        }
+      
+        var getEvents = function(event){
+          // alert(event.target.responseText);
+            var eventsJson =  JSON.parse(event.target.responseText);
+            events.length = 0;
+            if (Array.isArray(eventsJson)){
+                if (eventsJson[0].status == "sucess"){
+                    CSRF_TOKEN = eventsJson[0].CSRF_TOKEN;
+                    for (i = 1; i <eventsJson.length; i++){
+                        events.push(eventsJson[i]);
+                    }           
+                }
+                updateCalendar();
+                
+            }
+            else {events.length = 0;}
+        };
+        
+        function printEvents(){
+            var currentEvents = [];
+            for (var index = 0; index < events.length; index++){
+                if (events[index].MONTH == currentMonth.month+1 && events[index].YEAR == currentMonth.year){
+                    currentEvents.push(events[index]);
+                }
+            }
+            var dayCells = $(".days");
+           var i = 0;
+            for (var j = 0; j < dayCells.length; j++){
+                var original = $(dayCells[j]).find(".dayofthemonth").text();
+                while (original !== undefined && i < currentEvents.length && original == currentEvents[i].DAY) {
+                    //console.log(original);
+                    var oldValue = parseInt(($(dayCells[j]).find(".star")).text());
+                    if (isNaN(oldValue)){
+                        $( "<div class='star'>0</div>" ).appendTo( dayCells[j] );
+                        oldValue = 0;
+                    }
+                        ($(dayCells[j]).find(".star")).text(parseInt(oldValue) + 1);
+                
+                
+                    if (currentEvents[i].flag == 1){
+                        $(dayCells[j]).find(".star").qtip({
+                             content: "flag",
+                            show: { when: false, ready: true },
+                            hide: false,
+                            style: { 
+                             classes: 'qtip-red',
+                           width: 1
+                            }
+                         });
+                        //showRedQtip(j, "!");
+                   }
+                    i++;
+                   
+                   
+                }
+                
+                
+            }
+        }
+        
+        //sendCSRF("getEvents.php", getEvents);
+        
+        $(".logout").hide();
+        var realTime = new Date();
+        var realMonth = realTime.getMonth();
+        var realYear = realTime.getFullYear();
+        var realDay = realTime.getDate();
+        var currentMonth = new Month(realYear, realMonth);
+        document.getElementById("next").addEventListener("click", function(){
+            currentMonth = currentMonth.nextMonth(); // Previous month would be currentMonth.prevMonth()
+            updateCalendar(); // Whenever the month is updated, we'll need to re-render the calendar in HTML
+            displayWeather();
+        }, false);
+        
+         document.getElementById("prev").addEventListener("click", function(){
+            currentMonth = currentMonth.prevMonth(); // Previous month would be currentMonth.prevMonth()
+            updateCalendar(); // Whenever the month is updated, we'll need to re-render the calendar in HTML
+            displayWeather();
+        }, false);
+         updateCalendar();
+        function numberToMonth(num){
+            switch(num) {
+                case 0: return "JAN";
+                case 1: return "FEB";
+                case 2: return "MAR";
+                case 3: return "APR";
+                case 4: return "MAY";
+                case 5: return "JUN";
+                case 6: return "JUL";
+                case 7: return "AUG";
+                case 8: return "SEP";
+                case 9: return "OCT";
+                case 10: return "NOV";
+                case 11: return "DEC";
+                default: return "JAN";
+            }
+        }
+        var dayCells = $(".days");
+        for (var w = 0; w < dayCells.length; w++){
+          dayCells[w].addEventListener("click", viewModEvents, false);
+        }
+        
+        function viewModEvents(event){  
+            var box = $(event.target).find(".dayofthemonth");
+                var currentEvents = [];
+            if (loggedIn){
+                 $('div.qtip:visible').qtip('destroy');
+                    //this if statement takes care of the case when the user clicked on a child element.
+                if (isNaN(parseInt(box.text()))){
+                        box = $(event.target).parent().find(".dayofthemonth");
+                       
+                    }
+                for (var z = 0; z < events.length; z++){
+                    if (events[z].YEAR == currentMonth.year && events[z].MONTH == currentMonth.month+1 &&
+                        box.text() ==  events[z].DAY){
+                            currentEvents.push(events[z]);
+                    }
+                }
+                today = parseInt(box.text());
+                startView(currentEvents);
+                
+            }
+        }
+        
+        // This updateCalendar() function only alerts the dates in the currently specified month.  You need to write
+        // it to modify the DOM (optionally using jQuery) to display the days and weeks in the current month.
+        function updateCalendar(){
+            $('div.qtip:visible').qtip('destroy');
+           var weeks = currentMonth.getWeeks();
+           var index = 0;
+            var monthGoingOn = false;
+           var memoMonth = null;
+           var monthPassed= false;
+            for(var w in weeks){
+                var days = weeks[w].getDates();
+  
+                for(var i = 0; i < 7; i++){
+                    if (days[i].getDate() == 1 && !monthPassed){
+                        monthGoingOn = true;
+                        monthPassed = true;
+                        memoMonth = days[i].getMonth();
+                        document.getElementById("current_month").innerHTML = numberToMonth(memoMonth);
+                        document.getElementById("current_year").innerHTML = days[i].getFullYear();
+                    }
+                    if (days[i].getMonth() > memoMonth){
+                        monthGoingOn = false;
+                    }
+                    var dayCell = document.getElementById(index);
+                    if (monthGoingOn){
+                        dayCell.style.outline = "solid";
+                        dayCell.innerHTML = "<span class = \"dayofthemonth\">" + days[i].getDate() + "</span>";
+                        if (loggedIn){
+                            dayCell.style.cursor = "pointer";
+                        }
+                        else {
+                            dayCell.style.cursor = "initial";
+                        }
+                        if (memoMonth == realMonth && days[i].getFullYear() == realYear && days[i].getDate() == realDay){
+                            $(dayCell).css('background-color', '#dadaff');
+                        }
+                        else {
+                             $(dayCell).css('background-color', 'initial');
+                        }
+                        
+                        
+                       // alert(JSON.stringify(events[0], null, "    "));
+                      // alert("length" + events.length);
+
+                               //  dayCell.innerHTML = days[i].getDate() + "<div class = 'numEvents'>" + numEvents + "</div>";
+                     
+                    }
+                    
+                    
+                    else {
+                        dayCell.style.outline = "none";
+                        dayCell.innerHTML = "";
+                    }
+                    index++;
+                }
+            }
+            for (var j = index; j<42; j++){
+                var emptyCell = document.getElementById(j);
+                emptyCell.innerHTML = "";
+                emptyCell.style.outline = "none";
+              //  alert(j);     
+            }
+            
+             //now get ready to get events
+             printEvents();
+             displayWeather();
+        }
+       
+        document.getElementById("login").addEventListener("click", attemptLogIn,false);
+        document.getElementById("register").addEventListener("click", attemptRegister,false);
+        
+        document.getElementsByClassName("logout")[0].addEventListener("click",function(){
+            var logoutxmlHttp = new XMLHttpRequest();
+            logoutxmlHttp.open("POST", "logout.php", true);
+            logoutxmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            logoutxmlHttp.addEventListener("load", logoutCallBack, false);
+            logoutxmlHttp.send(encodeURI("CSRF_TOKEN="+ encodeURIComponent(CSRF_TOKEN)));
+         
+        },false);
+        
+        function loginCallBack(event){
+           var log_msg = JSON.parse(event.target.responseText);
+           if (log_msg.status == "sucess"){
+                loggedIn = true;
+                CSRF_TOKEN = log_msg.CSRF_TOKEN;
+                loggedInDisplay();
+                sendCSRF("getEvents.php", getEvents); 
+                
+           }
+           else {
+                showQtip("pw","Wrong username/password");
+           }
+        }
+        
+        function logoutCallBack(event){
+            var logout_msg = JSON.parse(event.target.responseText);
+          
+            if (logout_msg.status == "sucess"){
+                loggedIn = false;
+                loggedOutDisplay();
+                CSRF_TOKEN = null;
+                events = [];
+                updateCalendar();
+            }
+            else {
+                showQtipByClassName("logout","Something went wrong... Did you really mean to log out? (CSRF attack prevention)");
+            }
+            
+        }
+        function regCallBack(event){
+            var jsonMessages =  JSON.parse(event.target.responseText);
+            var msg;
+            for (i in jsonMessages){
+                msg = jsonMessages[i];
+                if (msg.status == "error_username"){
+                    showQtip("reg_username","Invalid Username; please only use alpha-numerical characters,'_',and '-'.");
+                }
+                if (msg.status == "error_email"){
+                    showQtip("email","Email is invalid!");
+                }
+                if (msg.status == "error_password"){
+                    showQtip("reg_pw","Invalid Password; please only use non-empty alpha-numerical characters, '@','', '_',and '-'.");
+                }
+                if(msg.status == "error_register"){
+                    showQtip("register","Could not register. Email or username may have been registered already.");
+                }
+                if(msg.status =="sucess"){
+                    showQtip("register","Sucess! You may now log-in.");
+                  // alert("Sucess! You may now log-in.");
+                }
+            }
+        }
+        
+        function attemptLogIn(){
+            $('div.qtip:visible').qtip('destroy');
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "login.php", true);
+            xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xmlHttp.addEventListener("load", loginCallBack, false);
+            xmlHttp.send(encodeURI("username="+ encodeURIComponent($("#username").val()) +"&password=" + encodeURIComponent($("#pw").val())));
+           
+        }
+        function attemptRegister(){
+            $('div.qtip:visible').qtip('hide');
+            var regXmlHttp = new XMLHttpRequest();
+            regXmlHttp.open("POST", "register.php",true);
+            regXmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            regXmlHttp.addEventListener("load",regCallBack,false);
+            regXmlHttp.send("username="+ encodeURIComponent($("#reg_username").val())+ "&password="+ encodeURIComponent($("#reg_pw").val())+ "&email="+ encodeURIComponent($("#email").val()));
+        }
+        
+        //stackoverflow user 'amorhs" demonstrated how to define qtip turn on and turn off properties
+        //http://stackoverflow.com/questions/5060955/automatically-show-qtip-jquery-plugin-tooltip-after-page-load
+        function showQtip(id, message){
+         $("#"+ id).qtip({
+            content: message,
+            show: { when: false, ready: true },
+            hide: false,
+            
+            });
+        }
+        function showRedQtip(id, message){
+         $("#"+ id).qtip({
+            content: message,
+            show: { when: false, ready: true },
+            hide: false,
+            style: { 
+                classes: 'qtip-red',
+                 width: 1
+            }
+            
+            
+            });
+        }
+        function showQtipByClassName(className, message){
+         $("."+ className).qtip({
+            content: message,
+            show: { when: false, ready: true },
+            hide: false
+            });
+        }
+        function showWeatherQtip(id, temp,img){
+            var str = "";
+            console.log(img);
+            if (img !== undefined){
+                str = "<img src='"+ img + "'/>";
+            }
+           $("#"+ id).qtip({
+                content: {
+                        text:  temp + str
+                },
+                show: { delay: 300 },
+                hide: {delay: 0 },
+                style: { 
+                classes: 'qtip-blue weather-qtip',
+             }
+            });
+ 
+        }
+        function loggedInDisplay(){
+            $(".loginSection").hide();
+            $(".registerSection").hide();
+            $(".logout").show();
+        }
+        function loggedOutDisplay(){
+              $(".loginSection").show();
+            $(".registerSection").show();
+            $(".logout").hide();
+        }
+        getForecast($("#weather").val());
+        function getForecast(city){
+            var xh = new XMLHttpRequest();
+                xh.open("POST","getForecast.php", true);
+                xh.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xh.addEventListener("load", forecastCallBack,false);
+                xh.send("location=" + encodeURIComponent(city));
+        }
+       
+        function forecastCallBack(event){
+            console.log(event.target.responseText);
+            var jsonData = JSON.parse(event.target.responseText);
+            weatherData = jsonData.forecast.forecastday;
+            console.log(weatherData);
+            displayWeather();
+            
+            $('#newWeather').qtip({
+                content: "Done!",
+                show: {
+                    when: false, ready: true
+                },
+                hide: {
+                    event: 'mouseover'
+                },
+                api: {
+                     onRender: function(){
+                 var self = this;
+                    setTimeout(function(){ self.hide(); }, 4000); // Hide after 4 seconds
+                    }
+                }
+            });
+        }
+        
+        function displayWeather(){
+
+            var index = 0;
+            var dayCells = $(".days");
+            for (var i = 0; i < dayCells.length; i++){
+                if (index < weatherData.length){
+                    var date = new Date(weatherData[index].date);
+                    var original = $(dayCells[i]).children(".dayofthemonth").text();
+                    //console.log($(dayCells[i]));
+                    //console.log(original);
+                    //console.log(date.getMonth());
+                    //console.log(weatherData[index].date);
+                    //console.log(date.getFullYear());
+                 
+                    if (original == date.getDate() &&
+                        date.getFullYear() == currentMonth.year && date.getMonth() == currentMonth.month ){
+                        //console.log();
+                        showWeatherQtip(i, weatherData[index].day.avgtemp_f + " degrees F" , weatherData[index].day.condition.icon);
+                        console.log("here");
+                        //showQtip(i,weatherData[index].day.avgtemp_f);
+                        index++;
+                        //if (index >= weatherData.length){
+                        //    break;
+                        //}               
+                    }
+                    else {
+                        showWeatherQtip(i, "No forecast available :/");
+                    }
+                }
+            }
+        }
+    </script>
+    </body>
+</html>
